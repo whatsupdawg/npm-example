@@ -21,10 +21,11 @@ function sendFile(res, filePath) {
 
   fs.readFile(filePath, (error, data) => {
     if (error) {
-      res.writeHead(error.code === 'ENOENT' ? 404 : 500, {
+      const notFound = error.code === 'ENOENT' || error.code === 'EISDIR';
+      res.writeHead(notFound ? 404 : 500, {
         'Content-Type': 'text/plain; charset=utf-8'
       });
-      res.end(error.code === 'ENOENT' ? 'Not found' : 'Server error');
+      res.end(notFound ? 'Not found' : 'Server error');
       return;
     }
 
@@ -34,17 +35,23 @@ function sendFile(res, filePath) {
 }
 
 const server = http.createServer((req, res) => {
-  const requestUrl = new URL(req.url || '/', `http://${host}:${port}`);
-  const pathname = decodeURIComponent(requestUrl.pathname);
+  let requestUrl;
+  let pathname;
+
+  try {
+    requestUrl = new URL(req.url || '/', `http://${host}:${port}`);
+    pathname = decodeURIComponent(requestUrl.pathname);
+  } catch {
+    res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('Bad request');
+    return;
+  }
+
   const requestedPath = pathname === '/' ? '/index.html' : pathname;
+  const relativePath = requestedPath.replace(/^[/\\]+/, '');
+  const filePath = path.resolve(publicDir, relativePath);
 
-  const normalizedPath = path
-    .normalize(requestedPath)
-    .replace(/^([.][.][/\\])+/, '');
-
-  const filePath = path.join(publicDir, normalizedPath);
-
-  if (!filePath.startsWith(publicDir)) {
+  if (filePath !== publicDir && !filePath.startsWith(`${publicDir}${path.sep}`)) {
     res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('Forbidden');
     return;
