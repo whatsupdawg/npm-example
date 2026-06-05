@@ -1,0 +1,22 @@
+{
+  "name": "npm-example",
+  "version": "1.0.0",
+  "description": "Minimal static Node site example",
+  "main": "server.js",
+  "scripts": {
+    "test": "node --test",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/whatsupdawg/npm-example.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/whatsupdawg/npm-example/issues"
+  },
+  "homepage": "https://github.com/whatsupdawg/npm-example#readme"
+}
