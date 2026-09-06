@@ -1,0 +1,41 @@
+name: AM Build Vars Test
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dawg-io/am-build-vars@main
+        with:
+          defaults: |
+            node_version: "20"
+            test_command: npm test
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.node_version }}
+          
+      - name: Test Vars
+        run: |
+          echo "node version ${{ env.node_version }}"
+          echo "test_command ${{ env.test_command }}"
+
+
+      - name: Adding New image_tag var
+        run: echo "image_tag=sha-$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
+      
+      - name: Share image_tag Var
+        uses: dawg-io/am-build-vars@main
+        with:
+          share-env: image_tag
+
+          
+  vars-pass-testing:
+    needs: build
+    uses: whatsupdawg/test1/.github/workflows/shared-workflow.yml@main
+    permissions:
+      contents: read
+      actions: read
+    secrets: inherit
